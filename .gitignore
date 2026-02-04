@@ -1,0 +1,11 @@
+# Terraform (Archivos de estado y configuración local)
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Llaves de seguridad (Archivos para entrar por SSH)
+*.pem
+
+# Archivos del sistema
+.DS_Store

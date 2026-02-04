@@ -1,3 +1,35 @@
+# 🚀 Cloud Deployment & Infrastructure (My Contribution)
+
+This repository is a modernized version of the original Flask application. I have implemented a full **Infrastructure as Code (IaC)** and **Containerization** layer to make it production-ready on AWS.
+
+## 🛠️ DevOps Enhancements
+* **Infrastructure as Code:** Automated AWS resource provisioning using **Terraform** (EC2, Security Groups, VPC).
+* **Containerization:** Packaged the application and its dependencies using **Docker** and **Docker Compose**.
+* **Automated Deployment:** Implemented a **User Data** script for zero-touch configuration (automated installation of Docker and app launch upon instance creation).
+
+## 🏗️ Architecture Overview
+The deployment follows a professional cloud workflow:
+1. **Terraform** creates a secure EC2 instance in the `eu-north-1` region.
+2. Port **5000** is automatically opened via Security Groups.
+3. Upon startup, the instance runs a script to install Docker and pull this repository.
+4. **Docker Compose** orchestrates the Flask app and its backend services.
+
+
+
+## 🔧 Challenges & Solutions: The "Buildx" Issue
+During deployment on Amazon Linux 2023, I encountered a version mismatch where `docker-compose build` required a specific `buildx` version not available in the default package manager.
+* **Solution:** I manually patched the deployment by fetching the latest stable binary of Docker Compose directly from the official GitHub releases and updating the system path. This ensured the orchestration was successful despite environment limitations.
+
+## 🚀 How to Run
+1.  **Configure AWS:** Ensure your credentials are set (`aws configure`).
+2.  **Initialize:** `terraform init`
+3.  **Deploy:** `terraform apply -auto-approve`
+4.  **Access:** Open `http://<EC2_PUBLIC_IP>:5000` in your browser.
+
+---
+*(Original README starts below)*
+---
+
 # Flask CRUD API
 
 This is a simple Flask application that demonstrates CRUD (Create, Read, Update, Delete) operations using a PostgreSQL database. The application allows you to manage quotes by inserting, updating, deleting, and retrieving quotes.
