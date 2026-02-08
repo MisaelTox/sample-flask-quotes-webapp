@@ -1,31 +1,42 @@
-# 🚀 Cloud Deployment & Infrastructure (My Contribution)
+# Flask Quotes Web App - Cloud Deployment
 
-This repository is a modernized version of the original Flask application. I have implemented a full **Infrastructure as Code (IaC)** and **Containerization** layer to make it production-ready on AWS.
+A production-ready Flask application that serves random and stored quotes, deployed on **AWS EC2** using **Terraform** and **Docker Compose**.
 
-## 🛠️ DevOps Enhancements
-* **Infrastructure as Code:** Automated AWS resource provisioning using **Terraform** (EC2, Security Groups, VPC).
-* **Containerization:** Packaged the application and its dependencies using **Docker** and **Docker Compose**.
-* **Automated Deployment:** Implemented a **User Data** script for zero-touch configuration (automated installation of Docker and app launch upon instance creation).
+## 🏗 Architecture
+The project follows a microservices-like architecture:
+* **Web Tier:** Flask application running on Python 3.9.
+* **Database Tier:** PostgreSQL 15 for persistent storage.
+* **Infrastructure:** AWS EC2 (t3.micro) provisioned via Terraform.
+* **Orchestration:** Docker Compose manages the multi-container setup.
 
-## 🏗️ Architecture Overview
-The deployment follows a professional cloud workflow:
-1. **Terraform** creates a secure EC2 instance in the `eu-north-1` region.
-2. Port **5000** is automatically opened via Security Groups.
-3. Upon startup, the instance runs a script to install Docker and pull this repository.
-4. **Docker Compose** orchestrates the Flask app and its backend services.
+## 🚀 Deployment
 
+### Prerequisites
+* Terraform installed.
+* AWS CLI configured with valid credentials.
 
+### Infrastructure as Code
+1. Navigate to the `terraform` directory.
+2. Run `terraform init` to initialize the providers.
+3. Run `terraform apply` to deploy the EC2 instance and Security Groups.
 
-## 🔧 Challenges & Solutions: The "Buildx" Issue
-During deployment on Amazon Linux 2023, I encountered a version mismatch where `docker-compose build` required a specific `buildx` version not available in the default package manager.
-* **Solution:** I manually patched the deployment by fetching the latest stable binary of Docker Compose directly from the official GitHub releases and updating the system path. This ensured the orchestration was successful despite environment limitations.
+### Application Startup
+The instance automatically installs Docker and clones this repository via `user_data`.
+To manually restart the services:
+\`\`\`bash
+docker-compose up -d --build
+\`\`\`
 
-## 🚀 How to Run
-1.  **Configure AWS:** Ensure your credentials are set (`aws configure`).
-2.  **Initialize:** `terraform init`
-3.  **Deploy:** `terraform apply -auto-approve`
-4.  **Access:** Open `http://<EC2_PUBLIC_IP>:5000` in your browser.
+## 🛣 API Endpoints
+* `GET /`: Returns all stored quotes in JSON format.
+* `GET /random`: Fetches a random quote from an external API.
+* `POST /insert`: Adds a new quote to the PostgreSQL database.
 
+## 🛠 Tech Stack
+* **Language:** Python (Flask)
+* **Database:** PostgreSQL
+* **DevOps:** Docker, Docker Compose, Terraform
+* **Cloud:** AWS (EC2, VPC, Security Groups)
 ---
 *(Original README starts below)*
 ---

@@ -75,7 +75,7 @@ resource "aws_instance" "quotes_server" {
               cd /home/ec2-user
               git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git
               cd sample-flask-quotes-webapp
-              docker compose up -d
+              docker-compose -f docker-compose.yaml up -d --build
               EOF
 
   tags = {
