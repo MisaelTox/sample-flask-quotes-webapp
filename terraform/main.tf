@@ -62,20 +62,45 @@ resource "aws_instance" "quotes_server" {
 
   user_data = <<-EOF
               #!/bin/bash
-              dnf update -y
-              dnf install -y docker git
-              systemctl start docker
-              systemctl enable docker
-              usermod -a -G docker ec2-user
-              
-              mkdir -p /usr/local/lib/docker/cli-plugins/
-              curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
-              chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+              # 1. Instalar Docker, Git y Buildx (necesario para el build moderno)
+              sudo dnf update -y
+              sudo dnf install -y docker git docker-buildx
+              sudo systemctl enable --now docker
+              sudo usermod -aG docker ec2-user
 
-              cd /home/ec2-user
-              git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git
-              cd sample-flask-quotes-webapp
-              docker-compose -f docker-compose.yaml up -d --build
+              # 2. Instalar el binario de Docker Compose directamente (vía universal)
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+              # 3. Preparar carpeta y clonar
+              mkdir -p /home/ec2-user/app
+              cd /home/ec2-user/app
+              git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git .
+
+              # 4. Crear el archivo docker-compose.yaml
+              cat <<EOT > docker-compose.yaml
+              services:
+                db:
+                  image: postgres:15
+                  environment:
+                    POSTGRES_USER: tox_admin
+                    POSTGRES_PASSWORD: stpauli123
+                    POSTGRES_DB: quotes_db
+                web:
+                  build: .
+                  restart: always
+                  ports:
+                    - "5000:5000"
+                  environment:
+                    DATABASE_URL: postgresql://tox_admin:stpauli123@db:5432/quotes_db
+                  depends_on:
+                    - db
+              EOT
+
+              # 5. Permisos y Lanzamiento automático
+              sudo chown -R ec2-user:ec2-user /home/ec2-user/app
+              sudo /usr/local/bin/docker-compose up -d --build
               EOF
 
   tags = {
