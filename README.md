@@ -1,42 +1,45 @@
-# Flask Quotes Web App - Cloud Deployment
+# Flask Quotes Webapp - AWS Automated Deployment
 
-A production-ready Flask application that serves random and stored quotes, deployed on **AWS EC2** using **Terraform** and **Docker Compose**.
+This project is a Flask-based web application that serves quotes, integrated with a PostgreSQL database. It is fully containerized using Docker and deployed automatically on AWS using Terraform.
 
-## 🏗 Architecture
-The project follows a microservices-like architecture:
-* **Web Tier:** Flask application running on Python 3.9.
-* **Database Tier:** PostgreSQL 15 for persistent storage.
-* **Infrastructure:** AWS EC2 (t3.micro) provisioned via Terraform.
-* **Orchestration:** Docker Compose manages the multi-container setup.
+## 🚀 Features
 
-## 🚀 Deployment
+- **Automated Infrastructure**: Provisioned on AWS (Stockholm region `eu-north-1`) using Terraform.
+- **Containerized Architecture**: Uses `docker-compose` to manage a Flask web server and a PostgreSQL database.
+- **Zero-Touch Setup**: The instance automatically installs Docker, Git, and Buildx, clones the repository, and starts the services upon boot.
 
-### Prerequisites
-* Terraform installed.
-* AWS CLI configured with valid credentials.
+## 🛠️ Tech Stack
 
-### Infrastructure as Code
-1. Navigate to the `terraform` directory.
-2. Run `terraform init` to initialize the providers.
-3. Run `terraform apply` to deploy the EC2 instance and Security Groups.
+- **Backend**: Python (Flask)
+- **Database**: PostgreSQL 15
+- **Infrastructure**: Terraform, AWS (EC2, VPC, Security Groups)
+- **Containerization**: Docker, Docker Compose
 
-### Application Startup
-The instance automatically installs Docker and clones this repository via `user_data`.
-To manually restart the services:
-\`\`\`bash
-docker-compose up -d --build
-\`\`\`
+## 🔧 Quick Start (Terraform)
 
-## 🛣 API Endpoints
-* `GET /`: Returns all stored quotes in JSON format.
-* `GET /random`: Fetches a random quote from an external API.
-* `POST /insert`: Adds a new quote to the PostgreSQL database.
+1. **Clone the repository**:
+   ```bash
+   git clone [https://github.com/MisaelTox/sample-flask-quotes-webapp.git](https://github.com/MisaelTox/sample-flask-quotes-webapp.git)
+Initialize and Apply:
 
-## 🛠 Tech Stack
-* **Language:** Python (Flask)
-* **Database:** PostgreSQL
-* **DevOps:** Docker, Docker Compose, Terraform
-* **Cloud:** AWS (EC2, VPC, Security Groups)
+Bash
+terraform init
+terraform apply -auto-approve
+Access the App: Once the deployment is complete, wait about 5 minutes for the Docker build to finish. Access the webapp at http://<EC2_PUBLIC_IP>:5000.
+
+⚙️ Infrastructure Details
+The main.tf file includes a user_data script that:
+
+Updates and installs system dependencies.
+
+Installs the latest Docker Compose binary and Buildx plugin.
+
+Pulls the database image and builds the local Flask image.
+
+Ensures the application stays up with a restart: always policy.
+
+
+---
 ---
 *(Original README starts below)*
 ---
