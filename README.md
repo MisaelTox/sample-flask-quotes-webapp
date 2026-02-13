@@ -1,122 +1,260 @@
-# Flask Quotes Web Application - AWS Deployment
+# Flask Quotes Web Application — AWS Deployment (Terraform + Docker)
 
-This project automates the deployment of a Dockerized Flask application with a PostgreSQL database on an **AWS EC2** instance using **Terraform**.
+Automated deployment of a Dockerized **Flask** web application with a **PostgreSQL** database on **AWS EC2**, using **Terraform (IaC)** and **Docker Compose**.
+
+## ⭐ Why this project matters
+
+This project demonstrates an end-to-end, production-style deployment workflow:
+
+- AWS infrastructure provisioning using **Terraform (IaC)**
+- Automated EC2 configuration via **cloud-init / `user_data`**
+- Containerized delivery with **Docker** and **Docker Compose**
+- Multi-service orchestration (**Flask + PostgreSQL**) with persistent volumes
+- Reproducible deployments and clean teardown with `terraform destroy`
+
+It reflects the kind of automation used in real DevOps environments to ensure deployments are repeatable, scalable, and easy to maintain.
+
+---
+
+## 🔥 Project Highlights
+
+- Automated EC2 provisioning with Terraform
+- Automated Docker + Docker Compose installation via `user_data`
+- Multi-container deployment (Flask + PostgreSQL)
+- Persistent PostgreSQL data volumes
+- Ready-to-run deployment in minutes
+- Clean teardown with `terraform destroy`
+
+---
+
+## 🧱 Tech Stack
+
+- **Cloud**: AWS (EC2, Security Groups)
+- **IaC**: Terraform
+- **Containers**: Docker, Docker Compose (v2)
+- **Backend**: Flask (Python)
+- **Database**: PostgreSQL
+- **OS**: Amazon Linux 2023
+
+---
 
 ---
 
 ## 🏗️ Architecture
-The infrastructure is defined as code (IaC) and includes:
-* **EC2 Instance**: Amazon Linux 2023.
-* **Security Group**: Configured to allow SSH (port 22) and App Traffic (port 5000).
-* **Docker & Docker Compose**: Automated installation via `user_data` script.
-* **Database**: PostgreSQL container with persistent volumes for data durability.
 
+    AWS (EC2)
+    ┌──────────────────────────────────────┐
+    │ EC2 Instance (Amazon Linux 2023)      │
+    │                                      │
+    │  ┌───────────────┐   ┌─────────────┐ │
+    │  │ Flask App      │   │ PostgreSQL   │ │
+    │  │ Port: 5000     │   │ Volume: yes  │ │
+    │  └───────────────┘   └─────────────┘ │
+    │                                      │
+    │  Docker Compose (multi-container)     │
+    └──────────────────────────────────────┘
 
+---
+
+## 🔍 What Terraform Provisions
+
+- EC2 instance (Amazon Linux 2023)
+- Security Group rules:
+  - SSH access (port **22**)
+  - Application traffic (port **5000**)
+- Bootstrapping via `user_data`
+
+---
+
+## ⚙️ What is Automated via `user_data`
+
+On first boot, the instance automatically:
+
+- Installs Docker and Git
+- Installs Docker Compose v2 (compatible with Compose `-f` flag)
+- Clones the repository
+- Generates a `.env` file with required variables
+- Starts the full Docker Compose stack automatically
 
 ---
 
 ## 🛠️ Prerequisites
-* [Terraform](https://www.terraform.io/downloads.html) installed.
-* **AWS CLI** configured with proper credentials.
-* A registered **SSH Key Pair** in your AWS region.
+
+- Terraform installed  
+  https://www.terraform.io/downloads.html
+
+- AWS CLI configured with valid credentials
+
+- An SSH Key Pair registered in your AWS region
 
 ---
 
-## 🚀 Deployment Steps
+## 🚀 Deployment (AWS)
 
-1. **Initialize Terraform:**
-   ```bash
-   terraform init
-Review the Plan:
+### 1) Initialize Terraform
 
-Bash
-terraform plan
-Apply Infrastructure:
+    terraform init
 
-Bash
-terraform apply -auto-approve
-Access the App:
-Once the deployment finishes (wait ~5 minutes for Docker builds and database initialization), access the application at:
-http://<EC2_PUBLIC_IP>:5000
+### 2) Review the Plan
 
-🔍 Infrastructure Details
-The deployment uses a custom user_data script to automate the following:
+    terraform plan
 
-Package Management: Installs Docker and Git on Amazon Linux 2023.
+### 3) Apply Infrastructure
 
-Compatibility Fix: Installs the specific Docker Compose v2 binary to ensure full functionality of the -f flag.
+    terraform apply -auto-approve
 
-Environment Setup: Clones the repository and injects environment variables via a generated .env file.
-
-Container Orchestration: Launches the multi-container stack automatically on boot.
-
-🧹 Cleanup
-To avoid unnecessary AWS charges, destroy the infrastructure when finished:
-
-Bash
-terraform destroy -auto-approve
-
-*(Original README starts below)*
 ---
 
-# Flask CRUD API
+## 📤 Terraform Outputs (Recommended)
 
-This is a simple Flask application that demonstrates CRUD (Create, Read, Update, Delete) operations using a PostgreSQL database. The application allows you to manage quotes by inserting, updating, deleting, and retrieving quotes.
+After `terraform apply`, you should capture the public IP:
+
+    terraform output
+
+If your Terraform project exposes an output like `public_ip`, you can run:
+
+    terraform output public_ip
+
+---
+
+## 🌍 Live Demo (App URL)
+
+Wait ~5 minutes for Docker builds and database initialization, then open:
+
+    http://<EC2_PUBLIC_IP>:5000
+
+---
+
+## 🔐 SSH Access
+
+Connect to the instance using your key pair:
+
+    ssh -i <YOUR_KEY.pem> ec2-user@<EC2_PUBLIC_IP>
+
+Example:
+
+    ssh -i ~/.ssh/my-aws-key.pem ec2-user@3.120.10.25
+
+---
+
+## 🐳 Verify Containers on EC2
+
+Once inside the instance, you can check containers with:
+
+    docker ps
+
+Or view logs:
+
+    docker compose logs -f
+
+---
+
+## 🧹 Cleanup
+
+To avoid unnecessary AWS charges, destroy the infrastructure:
+
+    terraform destroy -auto-approve
+
+---
+
+## 📌 Notes
+
+This repository also contains the original Flask CRUD API project.  
+The AWS deployment automation described above is an additional infrastructure layer built on top of it.
+
+---
+
+# Flask CRUD API (Local Development)
+
+This is a simple Flask application that demonstrates CRUD (Create, Read, Update, Delete) operations using a PostgreSQL database.
+
+The application allows you to manage quotes by inserting, updating, deleting, and retrieving quotes.
+
+---
 
 ## Prerequisites
 
-Before running the application, make sure you have the following installed:
+Before running the application locally, make sure you have:
 
 - Python (version 3.6 or higher)
 - pip package manager
-- PostgreSQL (with a running database server)
+- PostgreSQL (running database server)
 
-| NOTE: Postgres installation on docker-compose reference: 
-https://github.com/khezen/compose-postgres/blob/master/docker-compose.yml
+> NOTE: Docker Compose reference for PostgreSQL setup:  
+> https://github.com/khezen/compose-postgres/blob/master/docker-compose.yml
 
-## Getting Started
+---
 
-To get started with the application, follow these steps:
+## Getting Started (Local)
 
-1. **Clone the repository:**
+### 1) Clone the repository
 
-   ```bash
-   $ git clone https://github.com/your-username/flask-crud-application.git
+    git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git
 
-2. **Navigate to the project directory:**
-    ```bash
-    $ cd flask-crud-application
-3. **Install the required dependencies:**
-    ```bash
-    $ pip install -r requirements.txt
+### 2) Navigate into the project directory
 
-4. **Setup database**
-    - Create a PostgreSQL database for the application.
-    - Update the database connection URI in .env file to match your PostgreSQL configuration. The URI should be of the format: 
-    `postgresql://username:password@hostname:port/database_name`
-    - Example `.env` content:
-    ```bash
+    cd sample-flask-quotes-webapp
+
+### 3) Install dependencies
+
+    pip install -r requirements.txt
+
+---
+
+## Database Setup
+
+### 1) Create a PostgreSQL database
+
+Create a PostgreSQL database for the application.
+
+### 2) Configure the database connection
+
+Update the database connection URI in your `.env` file to match your PostgreSQL configuration.
+
+The URI format should be:
+
+    postgresql://username:password@hostname:port/database_name
+
+Example `.env` content:
+
     FLASK_APP=app
     FLASK_DEBUG=False
     DATABASE_URL=postgresql://username:password@hostname:port/quotes_flask_curd
-    ```
-    
-5. **Run Application:**
-    ```bash
+
+---
+
+## Run the Application
+
+Start the Flask server:
+
     flask run
-6. **Access the Application**
-    The Flask application will be running on http://localhost:5000. Open this URL in your web browser to access the application.
+
+---
+
+## Access the Application
+
+The Flask application will be running at:
+
+    http://localhost:5000
+
+---
 
 ## Usage
+
 The application provides the following routes for managing quotes:
 
-- / - Retrieves all quotes from the database.
-- /random - Retrieves a random motivational quote from an external API.
-- /insert - Inserts a new quote into the database.
-- /update - Updates an existing quote in the database.
-- /delete/{id}/ - Deletes a quote from the database by ID.
+- `/` — Retrieves all quotes from the database
+- `/random` — Retrieves a random motivational quote from an external API
+- `/insert` — Inserts a new quote into the database
+- `/update` — Updates an existing quote in the database
+- `/delete/{id}/` — Deletes a quote from the database by ID
 
-To interact with the application, you can use tools like Postman or cURL to send HTTP requests to the respective routes.
+You can interact with these endpoints using tools such as Postman or cURL.
+
+---
 
 ## Contributing
-Contributions are welcome! If you find any issues with the application or have suggestions for improvements, please feel free to submit an issue or a pull request.
+
+Contributions are welcome.
+
+If you find issues or have suggestions for improvements, feel free to open an issue or submit a pull request.
