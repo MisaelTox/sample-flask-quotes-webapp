@@ -1,46 +1,57 @@
-# Flask Quotes Webapp - AWS Automated Deployment
+# Flask Quotes Web Application - AWS Deployment
 
-This project is a Flask-based web application that serves quotes, integrated with a PostgreSQL database. It is fully containerized using Docker and deployed automatically on AWS using Terraform.
+This project automates the deployment of a Dockerized Flask application with a PostgreSQL database on an **AWS EC2** instance using **Terraform**.
 
-## 🚀 Features
+## Architecture
+The infrastructure is defined as code (IaC) and includes:
+* **EC2 Instance**: Amazon Linux 2023.
+* **Security Group**: Configured to allow SSH (22) and App Traffic (5000).
+* **Docker & Docker Compose**: Automated installation via `user_data`.
+* **Database**: PostgreSQL container with persistent volumes.
 
-- **Automated Infrastructure**: Provisioned on AWS (Stockholm region `eu-north-1`) using Terraform.
-- **Containerized Architecture**: Uses `docker-compose` to manage a Flask web server and a PostgreSQL database.
-- **Zero-Touch Setup**: The instance automatically installs Docker, Git, and Buildx, clones the repository, and starts the services upon boot.
 
-## 🛠️ Tech Stack
 
-- **Backend**: Python (Flask)
-- **Database**: PostgreSQL 15
-- **Infrastructure**: Terraform, AWS (EC2, VPC, Security Groups)
-- **Containerization**: Docker, Docker Compose
+## Prerequisites
+* [Terraform](https://www.terraform.io/downloads.html) installed.
+* AWS CLI configured with proper credentials.
+* A registered SSH Key Pair in your AWS region.
 
-## 🔧 Quick Start (Terraform)
+## Deployment Steps
 
-1. **Clone the repository**:
+1. **Initialize Terraform:**
    ```bash
-   git clone [https://github.com/MisaelTox/sample-flask-quotes-webapp.git](https://github.com/MisaelTox/sample-flask-quotes-webapp.git)
-Initialize and Apply:
+   terraform init
+
+Review the Plan:
 
 Bash
-terraform init
+terraform plan
+Apply Infrastructure:
+
+Bash
 terraform apply -auto-approve
-Access the App: Once the deployment is complete, wait about 5 minutes for the Docker build to finish. Access the webapp at http://<EC2_PUBLIC_IP>:5000.
+Access the App:
+Once the deployment finishes (wait ~5 minutes for Docker builds), access the application at:
+http://<EC2_PUBLIC_IP>:5000
 
-⚙️ Infrastructure Details
-The main.tf file includes a user_data script that:
+Infrastructure Details
+The deployment uses a custom user_data script to:
 
-Updates and installs system dependencies.
+Install Docker and Git.
 
-Installs the latest Docker Compose binary and Buildx plugin.
+Install the specific Docker Compose v2 binary for Amazon Linux 2023 compatibility.
 
-Pulls the database image and builds the local Flask image.
+Clone the repository and inject environment variables via a .env file.
 
-Ensures the application stays up with a restart: always policy.
+Launch the multi-container stack.
+
+Cleanup
+To avoid AWS charges, destroy the infrastructure when finished:
+
+Bash
+terraform destroy -auto-approve
 
 
----
----
 *(Original README starts below)*
 ---
 

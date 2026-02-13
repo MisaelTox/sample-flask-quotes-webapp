@@ -1,12 +1,13 @@
-# Terraform (Archivos de estado y configuración local)
+# Terraform
 .terraform/
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
-.env
 
-# Llaves de seguridad (Archivos para entrar por SSH)
-*.pem
-
-# Archivos del sistema
+# OS files
 .DS_Store
+
+# Credentials
+*.pem
+.env
+EOT
