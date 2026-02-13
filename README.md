@@ -2,26 +2,31 @@
 
 This project automates the deployment of a Dockerized Flask application with a PostgreSQL database on an **AWS EC2** instance using **Terraform**.
 
-## Architecture
+---
+
+## 🏗️ Architecture
 The infrastructure is defined as code (IaC) and includes:
 * **EC2 Instance**: Amazon Linux 2023.
-* **Security Group**: Configured to allow SSH (22) and App Traffic (5000).
-* **Docker & Docker Compose**: Automated installation via `user_data`.
-* **Database**: PostgreSQL container with persistent volumes.
+* **Security Group**: Configured to allow SSH (port 22) and App Traffic (port 5000).
+* **Docker & Docker Compose**: Automated installation via `user_data` script.
+* **Database**: PostgreSQL container with persistent volumes for data durability.
 
 
 
-## Prerequisites
+---
+
+## 🛠️ Prerequisites
 * [Terraform](https://www.terraform.io/downloads.html) installed.
-* AWS CLI configured with proper credentials.
-* A registered SSH Key Pair in your AWS region.
+* **AWS CLI** configured with proper credentials.
+* A registered **SSH Key Pair** in your AWS region.
 
-## Deployment Steps
+---
+
+## 🚀 Deployment Steps
 
 1. **Initialize Terraform:**
    ```bash
    terraform init
-
 Review the Plan:
 
 Bash
@@ -31,26 +36,25 @@ Apply Infrastructure:
 Bash
 terraform apply -auto-approve
 Access the App:
-Once the deployment finishes (wait ~5 minutes for Docker builds), access the application at:
+Once the deployment finishes (wait ~5 minutes for Docker builds and database initialization), access the application at:
 http://<EC2_PUBLIC_IP>:5000
 
-Infrastructure Details
-The deployment uses a custom user_data script to:
+🔍 Infrastructure Details
+The deployment uses a custom user_data script to automate the following:
 
-Install Docker and Git.
+Package Management: Installs Docker and Git on Amazon Linux 2023.
 
-Install the specific Docker Compose v2 binary for Amazon Linux 2023 compatibility.
+Compatibility Fix: Installs the specific Docker Compose v2 binary to ensure full functionality of the -f flag.
 
-Clone the repository and inject environment variables via a .env file.
+Environment Setup: Clones the repository and injects environment variables via a generated .env file.
 
-Launch the multi-container stack.
+Container Orchestration: Launches the multi-container stack automatically on boot.
 
-Cleanup
-To avoid AWS charges, destroy the infrastructure when finished:
+🧹 Cleanup
+To avoid unnecessary AWS charges, destroy the infrastructure when finished:
 
 Bash
 terraform destroy -auto-approve
-
 
 *(Original README starts below)*
 ---
