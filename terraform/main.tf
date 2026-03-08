@@ -58,7 +58,7 @@ resource "aws_instance" "quotes_server" {
 
   vpc_security_group_ids = [aws_security_group.quotes_sg.id]
 
-user_data = <<-EOF
+  user_data = <<-EOF
               #!/bin/bash
               # Redirect stdout and stderr to a log file for auditing and debugging
               exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
