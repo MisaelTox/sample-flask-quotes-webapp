@@ -1,260 +1,106 @@
-# Flask Quotes Web Application — AWS Deployment (Terraform + Docker)
+# Flask Quotes Web App — AWS Deployment
 
-Automated deployment of a Dockerized **Flask** web application with a **PostgreSQL** database on **AWS EC2**, using **Terraform (IaC)** and **Docker Compose**.
+![CI/CD](https://github.com/MisaelTox/sample-flask-quotes-webapp/actions/workflows/ci-cd.yml/badge.svg?branch=main)
+![AWS](https://img.shields.io/badge/AWS-EC2-orange?logo=amazon-aws)
+![Terraform](https://img.shields.io/badge/IaC-Terraform-purple?logo=terraform)
+![Docker](https://img.shields.io/badge/Container-Docker%20Compose-blue?logo=docker)
+![Python](https://img.shields.io/badge/Backend-Flask-green?logo=python)
 
-## ⭐ Why this project matters
+Production-ready deployment of a Dockerized **Flask + PostgreSQL** app on **AWS EC2**, using **Terraform** for infrastructure provisioning and **Docker Compose** for container orchestration.
 
-This project demonstrates an end-to-end, production-style deployment workflow:
-
-- AWS infrastructure provisioning using **Terraform (IaC)**
-- Automated EC2 configuration via **cloud-init / `user_data`**
-- Containerized delivery with **Docker** and **Docker Compose**
-- Multi-service orchestration (**Flask + PostgreSQL**) with persistent volumes
-- Reproducible deployments and clean teardown with `terraform destroy`
-
-It reflects the kind of automation used in real DevOps environments to ensure deployments are repeatable, scalable, and easy to maintain.
-
----
-
-## 🔥 Project Highlights
-
-- Automated EC2 provisioning with Terraform
-- Automated Docker + Docker Compose installation via `user_data`
-- Multi-container deployment (Flask + PostgreSQL)
-- Persistent PostgreSQL data volumes
-- Ready-to-run deployment in minutes
-- Clean teardown with `terraform destroy`
-
----
-
-## 🧱 Tech Stack
-
-- **Cloud**: AWS (EC2, Security Groups)
-- **IaC**: Terraform
-- **Containers**: Docker, Docker Compose (v2)
-- **Backend**: Flask (Python)
-- **Database**: PostgreSQL
-- **OS**: Amazon Linux 2023
-
----
+> **Deployment Status:** Offline — destroy via `terraform destroy` to avoid charges. All IaC configs in `/terraform`.
 
 ---
 
 ## 🏗️ Architecture
+```
+AWS (EC2 - Amazon Linux 2023)
+┌──────────────────────────────────────┐
+│  ┌───────────────┐   ┌─────────────┐ │
+│  │ Flask App      │   │ PostgreSQL   │ │
+│  │ Port: 5000     │   │ Volume: yes  │ │
+│  └───────────────┘   └─────────────┘ │
+│  Docker Compose (multi-container)     │
+└──────────────────────────────────────┘
+```
 
-    AWS (EC2)
-    ┌──────────────────────────────────────┐
-    │ EC2 Instance (Amazon Linux 2023)      │
-    │                                      │
-    │  ┌───────────────┐   ┌─────────────┐ │
-    │  │ Flask App      │   │ PostgreSQL   │ │
-    │  │ Port: 5000     │   │ Volume: yes  │ │
-    │  └───────────────┘   └─────────────┘ │
-    │                                      │
-    │  Docker Compose (multi-container)     │
-    └──────────────────────────────────────┘
-
----
-
-## 🔍 What Terraform Provisions
-
-- EC2 instance (Amazon Linux 2023)
-- Security Group rules:
-  - SSH access (port **22**)
-  - Application traffic (port **5000**)
-- Bootstrapping via `user_data`
+| Component | Technology |
+|-----------|-----------|
+| Infrastructure | AWS EC2 + Security Groups |
+| IaC | Terraform |
+| Orchestration | Docker Compose v2 |
+| Backend | Flask (Python) |
+| Database | PostgreSQL (persistent volume) |
+| CI/CD | GitHub Actions |
 
 ---
 
-## ⚙️ What is Automated via `user_data`
+## 🔄 CI/CD Pipeline
+```
+Push to main
+      ↓
+✅ App CI (parallel)          ✅ Terraform CI (parallel)
+   → pip install                 → terraform fmt
+   → docker build                → terraform validate
+      ↓                               ↓
+      └──────────── both pass ────────┘
+                      ↓
+           ⏸️ Manual approval gate
+                      ↓
+            🚀 terraform apply → provisions EC2
+```
 
-On first boot, the instance automatically:
-
-- Installs Docker and Git
-- Installs Docker Compose v2 (compatible with Compose `-f` flag)
-- Clones the repository
-- Generates a `.env` file with required variables
-- Starts the full Docker Compose stack automatically
-
----
-
-## 🛠️ Prerequisites
-
-- Terraform installed  
-  https://www.terraform.io/downloads.html
-
-- AWS CLI configured with valid credentials
-
-- An SSH Key Pair registered in your AWS region
+AWS credentials stored as **GitHub Secrets** — never hardcoded.
 
 ---
 
-## 🚀 Deployment (AWS)
+## 🚀 Deployment
+```bash
+cd terraform
+terraform init
+terraform apply -auto-approve
+```
 
-### 1) Initialize Terraform
-
-    terraform init
-
-### 2) Review the Plan
-
-    terraform plan
-
-### 3) Apply Infrastructure
-
-    terraform apply -auto-approve
+The `user_data` script automatically installs Docker, clones the repo, and starts all containers (~5 min). Access at `http://<EC2_PUBLIC_IP>:5000`.
 
 ---
 
-## 📤 Terraform Outputs (Recommended)
+## 🐍 Local Development
+```bash
+pip install -r requirements.txt
+flask run
+```
 
-After `terraform apply`, you should capture the public IP:
-
-    terraform output
-
-If your Terraform project exposes an output like `public_ip`, you can run:
-
-    terraform output public_ip
+Requires PostgreSQL running locally. Configure `.env` based on `.env.example`.
 
 ---
 
-## 🌍 Live Demo (App URL)
+## 📡 API Routes
 
-Wait ~5 minutes for Docker builds and database initialization, then open:
-
-    http://<EC2_PUBLIC_IP>:5000
-
----
-
-## 🔐 SSH Access
-
-Connect to the instance using your key pair:
-
-    ssh -i <YOUR_KEY.pem> ec2-user@<EC2_PUBLIC_IP>
-
-Example:
-
-    ssh -i ~/.ssh/my-aws-key.pem ec2-user@3.120.10.25
-
----
-
-## 🐳 Verify Containers on EC2
-
-Once inside the instance, you can check containers with:
-
-    docker ps
-
-Or view logs:
-
-    docker compose logs -f
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/` | GET | All quotes |
+| `/random` | GET | Random quote from external API |
+| `/insert` | POST | Add new quote |
+| `/update` | PUT | Update existing quote |
+| `/delete/{id}/` | DELETE | Delete quote by ID |
 
 ---
 
 ## 🧹 Cleanup
-
-To avoid unnecessary AWS charges, destroy the infrastructure:
-
-    terraform destroy -auto-approve
-
----
-
-## 📌 Notes
-
-This repository also contains the original Flask CRUD API project.  
-The AWS deployment automation described above is an additional infrastructure layer built on top of it.
+```bash
+terraform destroy -auto-approve
+```
 
 ---
 
-# Flask CRUD API (Local Development)
+## 📝 Lessons Learned
 
-This is a simple Flask application that demonstrates CRUD (Create, Read, Update, Delete) operations using a PostgreSQL database.
-
-The application allows you to manage quotes by inserting, updating, deleting, and retrieving quotes.
-
----
-
-## Prerequisites
-
-Before running the application locally, make sure you have:
-
-- Python (version 3.6 or higher)
-- pip package manager
-- PostgreSQL (running database server)
-
-> NOTE: Docker Compose reference for PostgreSQL setup:  
-> https://github.com/khezen/compose-postgres/blob/master/docker-compose.yml
+- **CI/CD with GitHub Actions** — parallel Flask + Terraform validation with manual approval gate before AWS provisioning
+- **user_data automation** — fully automated EC2 bootstrap: Docker install, repo clone, and Compose stack start on first boot
+- **Docker Compose v2** — resolved compatibility issues between Amazon Linux 2023 and modern Compose plugin syntax
+- **Persistent volumes** — configured PostgreSQL data volume to survive container restarts
 
 ---
 
-## Getting Started (Local)
-
-### 1) Clone the repository
-
-    git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git
-
-### 2) Navigate into the project directory
-
-    cd sample-flask-quotes-webapp
-
-### 3) Install dependencies
-
-    pip install -r requirements.txt
-
----
-
-## Database Setup
-
-### 1) Create a PostgreSQL database
-
-Create a PostgreSQL database for the application.
-
-### 2) Configure the database connection
-
-Update the database connection URI in your `.env` file to match your PostgreSQL configuration.
-
-The URI format should be:
-
-    postgresql://username:password@hostname:port/database_name
-
-Example `.env` content:
-
-    FLASK_APP=app
-    FLASK_DEBUG=False
-    DATABASE_URL=postgresql://username:password@hostname:port/quotes_flask_curd
-
----
-
-## Run the Application
-
-Start the Flask server:
-
-    flask run
-
----
-
-## Access the Application
-
-The Flask application will be running at:
-
-    http://localhost:5000
-
----
-
-## Usage
-
-The application provides the following routes for managing quotes:
-
-- `/` — Retrieves all quotes from the database
-- `/random` — Retrieves a random motivational quote from an external API
-- `/insert` — Inserts a new quote into the database
-- `/update` — Updates an existing quote in the database
-- `/delete/{id}/` — Deletes a quote from the database by ID
-
-You can interact with these endpoints using tools such as Postman or cURL.
-
----
-
-## Contributing
-
-Contributions are welcome.
-
-If you find issues or have suggestions for improvements, feel free to open an issue or submit a pull request.
+*Fork of [jaykantrprj/sample-flask-quotes-webapp](https://github.com/jaykantrprj/sample-flask-quotes-webapp). Cloud infrastructure and CI/CD pipeline added by MisaelTox.*
