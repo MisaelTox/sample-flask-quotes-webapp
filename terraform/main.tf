@@ -40,7 +40,7 @@ resource "aws_security_group" "quotes_sg" {
   tags = { Name = "${var.project_name}-sg" }
 }
 
-# 2. Data Source para la AMI de Amazon Linux 2023
+# 2. AMI Data Source - Amazon Linux 2023
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -50,7 +50,7 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
-# 3. La Instancia EC2
+# 3. EC2 Instance
 resource "aws_instance" "quotes_server" {
   ami           = data.aws_ami.amazon_linux_2023.id
   instance_type = var.instance_type
@@ -87,7 +87,9 @@ resource "aws_instance" "quotes_server" {
               cd /home/ec2-user/app
               git clone https://github.com/MisaelTox/sample-flask-quotes-webapp.git .
 
-              # Create .env file with the required environment variables
+              # Create .env file with environment variables
+              # NOTE: In production, credentials should be pulled from AWS Secrets Manager
+              # instead of being hardcoded in user_data
               cat <<EOT > .env
               POSTGRES_USER=postgres
               POSTGRES_PASSWORD=changeme
